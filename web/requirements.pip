@@ -1,0 +1,21 @@
+############################
+#          Common          #
+############################
+
+Django==4.0.4
+gunicorn==20.1.0
+psycopg2==2.9.3
+
+# ipython:
+ipython==8.3.0
+
+# TODO delete in production
+# CORS headers
+# django-cors-headers==3.2.1
+
+
+############################
+#          Tests           #
+############################
+
+factory-boy==3.2.1

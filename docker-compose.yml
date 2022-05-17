@@ -1,0 +1,42 @@
+version: "2"
+services:
+  db:
+    container_name: ${COMPOSE_PROJECT_NAME}_postgres
+    image: postgres:14.2
+    restart: always
+    environment:
+      - POSTGRES_PASSWORD
+    volumes:
+      - vol_postgres:/var/lib/postgresql/data
+  web:
+    container_name: ${COMPOSE_PROJECT_NAME}_django
+    build: ./web
+    environment:
+      - POSTGRES_PASSWORD
+    restart: always
+    command: ./entry_point.sh
+    depends_on:
+      - 'db'
+    volumes:
+      - ./web/src:/src
+      - vol_static:/static
+    expose:
+      - "8000"
+  nginx:
+    container_name: ${COMPOSE_PROJECT_NAME}_nginx
+    image: nginx:1.21.6
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./web/src:/src
+      - ./nginx:/etc/nginx/conf.d
+      - vol_static:/static
+    depends_on:
+      - 'web'
+
+volumes:
+  vol_postgres:
+    driver: local
+  vol_static:
+    driver: local
