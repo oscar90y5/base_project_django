@@ -1,3 +1,6 @@
+include .env
+export
+
 up:
 	docker compose -f docker-compose.yml up --build -d
 
@@ -22,3 +25,6 @@ logs:
 
 restart:
 	docker restart ${COMPOSE_PROJECT_NAME}_django
+
+restart-nginx:
+	docker restart ${COMPOSE_PROJECT_NAME}_nginx
