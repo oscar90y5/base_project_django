@@ -82,3 +82,66 @@ Para probar que todo ha ido bien, accedemos a la url `http://localhost:8000/acco
 create-fixtures:
     docker exec -it ${COMPOSE_PROJECT_NAME}_django bash -c "python manage.py dumpdata <nombres de las clases> -o ./fixtures/<nombre_fichero>.json --natural-foreign"
 ```
+
+## Añadir Swagger
+* Instalar drf_spectacular:
+  * Añadir `drf-spectacular==0.22.1` en `requirements.pip`.
+  * En `INSTALLED_APPS` añadir `drf_spectacular`.
+* Añadir el fichero `swagger-ui.html` a la carpeta `_setup/templates` con el siguiente contenido:
+```html
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Swagger</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@3/swagger-ui.css">
+</head>
+
+<body>
+    <div id="swagger-ui"></div>
+    <script src="https://unpkg.com/swagger-ui-dist@3/swagger-ui-bundle.js"></script>
+    <script>
+        const ui = SwaggerUIBundle({
+            url: "{% url 'schema' %}",
+            dom_id: '#swagger-ui',
+            presets: [
+                SwaggerUIBundle.presets.apis,
+                SwaggerUIBundle.SwaggerUIStandalonePreset
+            ],
+            layout: "BaseLayout",
+            requestInterceptor: (request) => {
+                request.headers['X-CSRFToken'] = "{{ csrf_token }}"
+                return request;
+            }
+        })
+    </script>
+</body>
+
+</html>
+```
+* En el fichero `_setup/urls.py`, añadir las siguientes líneas:
+```python
+    path("schema/", SpectacularAPIView.as_view(), name="schema"),
+    path(
+        "docs/",
+        SpectacularSwaggerView.as_view(
+            template_name="swagger-ui.html", url_name="schema"
+        ),
+        name="swagger-ui",
+    ),
+```
+* En `settings.py`:
+  * Añadir en `TEMPLATES` el elemento `f'{BASE_DIR}/_setup/templates'` dentro de la lista `'DIRS'`.
+  * En el diccionario `REST_FRAMEWORK` añadir el elemento `'DEFAULT_SCHEMA_CLASS'` con valor `'drf_spectacular.openapi.AutoSchema'`.
+  * Añadir ciertos metadatos a la API. Por ejemplo:
+```python
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Your Project API',
+    'DESCRIPTION': 'Your project description',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    # OTHER SETTINGS
+}
+```
